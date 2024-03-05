@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 import Profile from "@/components/Profile";
-import { stringify } from "postcss";
+
 const MyProfile = () => {
   const {data:session} = useSession();
   const [posts, setPosts] = useState([]);
