@@ -2,10 +2,10 @@
 import { useState, useEffect } from "react";
 import PromptCard from "./PromptCard";
 
-const PromptCardList = ({data, handleTagClick}) => {
-  return(
+const PromptCardList = ({ data, handleTagClick }) => {
+  return (
     <div className="mt-16 prompt_layout">
-      {data.map((post)=>(
+      {data.map((post) => (
         <PromptCard
           key={post._id}
           post={post}
@@ -18,34 +18,66 @@ const PromptCardList = ({data, handleTagClick}) => {
 const Feed = () => {
   const [searchText, setSearchText] = useState('');
   const [posts, setPosts] = useState([]);
-  const handleSearchChange = (e) => {
+  const [searchType, setSearchType] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [timeOut, setTimeOut] = useState(null);
+  const searchOptions = ['Prompt', 'Username', 'Tag'];
 
+  const filteredPrompt = () => {
+    const regex = new RegExp(searchText, 'i');
+    return posts.filter(
+      (item) =>
+        regex.test(item.creator.username) ||
+        regex.test(item.tag) ||
+        regex.test(item.prompt)
+    );
+  }
+
+  const handleSearchChange = (e) => {
+    clearTimeout(timeOut);
+    setSearchText(e.target.value);
+
+    setTimeOut(
+      setTimeout(() => {
+        const result = filteredPrompt();
+        setSearchResults(result);
+      }, 250)
+    );
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     const fetchPosts = async () => {
       const response = await fetch('/api/prompt');
       const data = await response.json();
       setPosts(data);
     }
     fetchPosts();
-  },[]);
-  
+  }, []);
+
   return (
     <section className="feed">
       <form className="relative w-full flex-center">
-        <input 
-          type="text" 
+        <input
+          type="text"
           placeholder="Search for a tag or a username"
           value={searchText}
           onChange={handleSearchChange}
           required
-          className="search_input peer"/>
+          className="search_input peer" />
+        <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
+          {searchOptions.map((option) => (<option className="search_input peer" value={option}>{option}</option>))}
+        </select>
       </form>
 
-      <PromptCardList
+      {searchText?(
+        <PromptCardList
+        data={searchResults}
+        handleTagClick={() => { }} />
+      ):(
+        <PromptCardList
         data={posts}
-        handleTagClick={()=>{}} />
+        handleTagClick={() => { }} />
+      )}
     </section>
   )
 }
